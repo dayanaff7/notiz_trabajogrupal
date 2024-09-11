@@ -1,0 +1,63 @@
+      <main class="flex-grow-1 container my-4">
+            <div class="card shadow-sm p-4">
+                <h2 class="h4 mb-4">Generar Informe de Reunión</h2>
+                <div class="mb-3">
+                    <label for="template" class="form-label">Seleccionar Plantilla</label>
+                    <select id="template" v-model="selectedTemplate" class="form-select">
+                        <option value="">Elige una plantilla</option>
+                        <option value="project_update">Actualización de Proyecto</option>
+                        <option value="team_meeting">Reunión de Equipo</option>
+                        <option value="client_consultation">Consulta con Cliente</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Método de Entrada</label>
+                    <div class="form-check">
+                        <input type="radio" v-model="inputMethod" value="text" class="form-check-input">
+                        <label class="form-check-label">Notas de Texto</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" v-model="inputMethod" value="audio" class="form-check-input">
+                        <label class="form-check-label">Subir Audio</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="radio" v-model="inputMethod" value="record" class="form-check-input">
+                        <label class="form-check-label">Grabar Audio</label>
+                    </div>
+                </div>
+                <div v-if="inputMethod === 'text'" class="mb-3">
+                    <label for="meeting_notes" class="form-label">Notas de la Reunión</label>
+                    <textarea id="meeting_notes" v-model="meetingNotes" rows="4" class="form-control" placeholder="Ingresa tus notas de la reunión aquí..."></textarea>
+                </div>
+                <div v-if="inputMethod === 'audio'" class="mb-3">
+                    <label for="audio_file" class="form-label">Subir Archivo de Audio</label>
+                    <input type="file" id="audio_file" @change="handleAudioUpload" accept="audio/*" class="form-control">
+                    <div v-if="audioFile" class="mt-2 text-muted">Archivo seleccionado: {{ audioFile.name }}</div>
+                    <button v-if="audioFile" @click="transcribeAudio" class="btn btn-teal-600 text-white mt-2">Transcribir Audio</button>
+                </div>
+                <div v-if="inputMethod === 'record'" class="mb-3">
+                    <button @click="toggleRecording" :class="{'btn-danger': isRecording, 'btn-teal-600': !isRecording}" class="btn btn-block text-white">
+                        {{ isRecording ? 'Detener Grabación' : 'Iniciar Grabación' }}
+                    </button>
+                    <div v-if="recordingTime" class="mt-2 text-muted">Tiempo de grabación: {{ recordingTime }} segundos</div>
+                    <button v-if="audioBlob" @click="transcribeRecording" class="btn btn-teal-600 text-white mt-2">Transcribir Grabación</button>
+                </div>
+                <button @click="generateReport" :disabled="isLoading" class="btn btn-teal-600 text-white w-100 mt-3">
+                    <span v-if="!isLoading">Generar Informe</span>
+                    <span v-else>Generando...</span>
+                </button>
+                <div v-if="isLoading" class="text-center mt-4">
+                    <div class="spinner-border text-teal-600" role="status"></div>
+                    <p class="text-muted mt-2">Generando informe con IA...</p>
+                </div>
+            </div>
+
+            <div v-if="generatedReport" class="card shadow-sm mt-4 p-4">
+                <h3 class="h5 mb-4">Informe Generado</h3>
+                <div v-html="generatedReport" class="prose"></div>
+                <div class="mt-4 d-flex justify-content-end">
+                    <button @click="editReport" class="btn btn-outline-secondary">Editar</button>
+                    <button @click="downloadReport" class="btn btn-teal-600 text-white ms-2">Descargar Informe</button>
+                </div>
+            </div>
+        </main>
